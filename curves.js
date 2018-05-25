@@ -19,8 +19,9 @@
 		
 		// default styles
 		style = {
-			curve:	{ width: 6, color: "#333" },
+			curve:	{ width: 2, color: "#333" },
 			cpline:	{ width: 1, color: "#C00" },
+			qcline:	{ width: 1, color: "#00F" },
 			point: { radius: 10, width: 2, color: "#900", fill: "rgba(200,200,200,0.5)", arc1: 0, arc2: 2 * Math.PI }
 		}
 		
@@ -74,6 +75,39 @@
 			ctx.quadraticCurveTo(point.cp1.x, point.cp1.y, point.p2.x, point.p2.y);
 		}
 		
+		ctx.stroke();
+		
+		//new
+		ctx.beginPath();
+		ctx.lineWidth = style.qcline.width;
+		ctx.strokeStyle = style.qcline.color;
+		
+		ctx.moveTo(point.p1.x, point.p1.y);
+		
+		tmpx1 = point.cp1.x-point.p1.x;
+		tmpx2 = point.p2.x-point.cp1.x;
+		tmpx3 = point.p2.x-point.p1.x;
+		tmpy1 = point.cp1.y-point.p1.y;
+		tmpy2 = point.p2.y-point.cp1.y;
+		tmpy3 = point.p2.y-point.p1.y;
+		//dist1 = Math.sqrt(tmpx1*tmpx1+tmpy1*tmpy1);
+		//dist2 = Math.sqrt(tmpx2*tmpx2+tmpy2*tmpy2);
+		dist1 = Math.sqrt(Math.sqrt(tmpx1*tmpx1+tmpy1*tmpy1));
+		dist2 = Math.sqrt(Math.sqrt(tmpx2*tmpx2+tmpy2*tmpy2));
+		var t1 = dist1/(dist1+dist2);	//0.5  dist1/(dist1+dist2)
+		var fBX = (tmpx1-t1*t1*tmpx3)/(t1-t1*t1);
+		var fCX = tmpx3-fBX;
+		var fBY = (tmpy1-t1*t1*tmpy3)/(t1-t1*t1);
+		var fCY = tmpy3-fBY;
+		var part = 100;
+		for(var i = 0; i < (part+1); i++) {
+			// 计算两个动点的坐标
+			var t = i/part;
+			var bx  = point.p1.x + fBX * t + fCX * t * t;
+			var by  = point.p1.y + fBY * t + fCY * t * t;
+			
+			ctx.lineTo(bx, by);
+		}
 		ctx.stroke();
 
 		// control points
