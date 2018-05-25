@@ -21,7 +21,8 @@
 		style = {
 			curve:	{ width: 2, color: "#333" },
 			cpline:	{ width: 1, color: "#C00" },
-			qcline:	{ width: 1, color: "#00F" },
+			curve1:	{ width: 1, color: "#00F" },
+			curve2: { width: 1, color: "#0F0" },
 			point: { radius: 10, width: 2, color: "#900", fill: "rgba(200,200,200,0.5)", arc1: 0, arc2: 2 * Math.PI }
 		}
 		
@@ -77,10 +78,10 @@
 		
 		ctx.stroke();
 		
-		//new
+		//new, t range is [0, 1]
 		ctx.beginPath();
-		ctx.lineWidth = style.qcline.width;
-		ctx.strokeStyle = style.qcline.color;
+		ctx.lineWidth = style.curve1.width;
+		ctx.strokeStyle = style.curve1.color;
 		
 		ctx.moveTo(point.p1.x, point.p1.y);
 		
@@ -95,18 +96,55 @@
 		dist1 = Math.sqrt(Math.sqrt(tmpx1*tmpx1+tmpy1*tmpy1));
 		dist2 = Math.sqrt(Math.sqrt(tmpx2*tmpx2+tmpy2*tmpy2));
 		var t1 = dist1/(dist1+dist2);	//0.5  dist1/(dist1+dist2)
+		var fAX = point.p1.x;
 		var fBX = (tmpx1-t1*t1*tmpx3)/(t1-t1*t1);
 		var fCX = tmpx3-fBX;
+		var fAY = point.p1.y;
 		var fBY = (tmpy1-t1*t1*tmpy3)/(t1-t1*t1);
 		var fCY = tmpy3-fBY;
-		var part = 100;
-		for(var i = 0; i < (part+1); i++) {
+		var step = 0.01
+		for(var i = 0; i < (1+step); i+=step) {
 			// 计算两个动点的坐标
-			var t = i/part;
-			var bx  = point.p1.x + fBX * t + fCX * t * t;
-			var by  = point.p1.y + fBY * t + fCY * t * t;
+			var t = i;
+			var bx  = fAX + fBX * t + fCX * t * t;
+			var by  = fAY + fBY * t + fCY * t * t;
 			
 			ctx.lineTo(bx, by);
+		}
+		ctx.stroke();
+		
+		//new2, t range is extended to [-1, 2]
+		ctx.beginPath();
+		ctx.lineWidth = style.curve2.width;
+		ctx.strokeStyle = style.curve2.color;
+		
+		tmpx1 = point.cp1.x-point.p1.x;
+		tmpx2 = point.p2.x-point.cp1.x;
+		tmpx3 = point.p2.x-point.p1.x;
+		tmpy1 = point.cp1.y-point.p1.y;
+		tmpy2 = point.p2.y-point.cp1.y;
+		tmpy3 = point.p2.y-point.p1.y;
+		dist1 = Math.sqrt(Math.sqrt(tmpx1*tmpx1+tmpy1*tmpy1));
+		dist2 = Math.sqrt(Math.sqrt(tmpx2*tmpx2+tmpy2*tmpy2));
+		t1 = dist1/(dist1+dist2);
+		fCX = (9*tmpx1-9*t1*tmpx3)/(t1*t1-t1);
+		fBX = 3*tmpx3-fCX;
+		fAX = point.p1.x-fBX/3-fCX/9;
+		fCY = (9*tmpy1-9*t1*tmpy3)/(t1*t1-t1);
+		fBY = 3*tmpy3-fCY;
+		fAY = point.p1.y-fBY/3-fCY/9;
+		step = 0.01;
+		var a = -0.5;	// No less than -1
+		var b = 1.5;	// No more than 2
+		for(i = a; i < (b+step); i+=step) {
+			var t = (i+1)/3;	// i-(-1)/(2-(-1))
+			var bx  = fAX + fBX * t + fCX * t * t;
+			var by  = fAY + fBY * t + fCY * t * t;
+			
+			if(i==a)
+				ctx.moveTo(bx, by);
+			else
+				ctx.lineTo(bx, by);
 		}
 		ctx.stroke();
 
